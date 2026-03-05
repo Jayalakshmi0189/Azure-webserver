@@ -1,0 +1,57 @@
+azure-terraform-webserver/
+│
+├── provider.tf
+├── main.tf
+├── outputs.tf
+└── README.md
+=========================================================================================
+main.tf
+resource "azurerm_resource_group" "rg" {
+  name     = "webserver-rg"
+  location = "East US"
+}
+
+resource "azurerm_service_plan" "appserviceplan" {
+  name                = "webserver-plan"
+  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.rg.name
+  os_type             = "Linux"
+  sku_name            = "B1"
+}
+
+resource "azurerm_linux_web_app" "webapp" {
+  name                = "myazurewebserver12345"
+  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.rg.name
+  service_plan_id     = azurerm_service_plan.appserviceplan.id
+
+  site_config {
+    application_stack {
+      node_version = "18-lts"
+    }
+  }
+
+  app_settings = {
+    "WEBSITE_RUN_FROM_PACKAGE" = "1"
+  }
+}
+========================================================================
+outputs.tf
+output "webapp_url" {
+  value = "https://${azurerm_linux_web_app.webapp.default_hostname}"
+}
+
+======================================================================
+Project: Deploying a Web Server in Azure using Terraform
+
+Files:
+- provider.tf : Configures Azure provider
+- main.tf : Creates Resource Group, App Service Plan, and Web App
+- outputs.tf : Displays the web app URL
+
+Steps to Deploy:
+1. Install Terraform
+2. Run terraform init
+3. Run terraform plan
+4. Run terraform apply
+======================================================================================
