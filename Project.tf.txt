@@ -1,57 +1,99 @@
-azure-terraform-webserver/
-│
-├── provider.tf
-├── main.tf
-├── outputs.tf
-└── README.md
-=========================================================================================
-main.tf
-resource "azurerm_resource_group" "rg" {
-  name     = "webserver-rg"
-  location = "East US"
+provider "aws" {
+  region = var.region
 }
 
-resource "azurerm_service_plan" "appserviceplan" {
-  name                = "webserver-plan"
-  location            = azurerm_resource_group.rg.location
-  resource_group_name = azurerm_resource_group.rg.name
-  os_type             = "Linux"
-  sku_name            = "B1"
+resource "aws_vpc" "main_vpc" {
+  cidr_block = var.vpc_cidr
 }
 
-resource "azurerm_linux_web_app" "webapp" {
-  name                = "myazurewebserver12345"
-  location            = azurerm_resource_group.rg.location
-  resource_group_name = azurerm_resource_group.rg.name
-  service_plan_id     = azurerm_service_plan.appserviceplan.id
+resource "aws_subnet" "main_subnet" {
+  vpc_id            = aws_vpc.main_vpc.id
+  cidr_block        = var.subnet_cidr
+  availability_zone = var.az
+}
 
-  site_config {
-    application_stack {
-      node_version = "18-lts"
-    }
-  }
+resource "aws_instance" "web_server" {
+  ami           = var.ami
+  instance_type = var.instance_type
+  subnet_id     = aws_subnet.main_subnet.id
 
-  app_settings = {
-    "WEBSITE_RUN_FROM_PACKAGE" = "1"
+  tags = {
+    Name = "Terraform-Web-Server"
   }
 }
+=========================================================
+variable "region" {
+  type    = string
+  default = "us-east-1"
+}
+
+variable "vpc_cidr" {
+  type    = string
+  default = "10.0.0.0/16"
+}
+
+variable "subnet_cidr" {
+  type    = string
+  default = "10.0.1.0/24"
+}
+
+variable "az" {
+  type    = string
+  default = "us-east-1a"
+}
+
+variable "ami" {
+  type    = string
+}
+
+variable "instance_type" {
+  type    = string
+  default = "t2.micro"
+}
+===============================================================================
+# Terraform AWS Project
+
+## 1. Project Overview
+This project deploys basic AWS infrastructure using Terraform, including:
+- A VPC
+- A Subnet
+- An EC2 instance
+
+## 2. Prerequisites
+- AWS account
+- AWS CLI installed and configured
+- Terraform installed
+
+## 3. Setup Steps
+1. Clone or extract the project folder.
+2. Update variables in vars.tf as needed.
+3. Initialize terraform:
 ========================================================================
-outputs.tf
-output "webapp_url" {
-  value = "https://${azurerm_linux_web_app.webapp.default_hostname}"
-}
+4. Validate configuration:
+5. View execution plan:
+6. Apply resources:
 
-======================================================================
-Project: Deploying a Web Server in Azure using Terraform
+## 4. Validation Steps
+Take screenshots of:
+- `terraform apply` output showing successful resource creation
+- AWS console showing:
+- VPC created
+- Subnet created
+- EC2 instance running
 
-Files:
-- provider.tf : Configures Azure provider
-- main.tf : Creates Resource Group, App Service Plan, and Web App
-- outputs.tf : Displays the web app URL
-
-Steps to Deploy:
-1. Install Terraform
-2. Run terraform init
-3. Run terraform plan
-4. Run terraform apply
-======================================================================================
+## 5. Files Included
+- main.tf
+- vars.tf
+- README.md
+- /screenshots folder containing required images
+==============================================================================
+project-folder/
+│
+├── main.tf
+├── vars.tf
+├── README.md
+└── screenshots/
+      ├── terraform-apply.png
+      ├── vpc.png
+      ├── subnet.png
+      └── ec2-instance.png
